@@ -1,28 +1,29 @@
 Required software:
+
+
 * PPCG and dependent packages
 * Autotuner 
 * OpenCL or Cuda SDK
 
-
 OpenCl Blas kernels
 OpneCL_Dir = {Benchmark}/Opencl
 * modify the OpenCL_SDK and BLAS_SDK varibles according to your machine installation in {OpenCL_Dir}/common.mk
-* to build run make blas command in each of the benchmark directory
+* to build, execute make blas command in each of the benchmark directories 
 * run the resulting executable
 
 
 CUDA Blas Kernels
 CUDA_DIR = {Benchmark}/CUDA
 * make sure nvcc compiler is installed
-* to build run make blas in each of the benchmark directory
+* to build, execute make blas command in each of the benchmark directories
 * run the resulting executable
 
 PPCG generated kernels
 Polybench_DIR = {Benchmark}/polybench-c-3.2
 * Setup PPCG_DIR, OpenCL_DIR, AUTOTUNE_DIR and POLYBENCH variables in {Polybench_DIR}/common.mk
-* to build and run, execute make opencl or make cuda in each of the benchmark directory
+* to build and run, execute make opencl or make cuda in each of the benchmark directories
 * run make autotune to launch autotuning. Autotuning parameters can be changed in expolre-params.py in each benchmark directory
-* Best congfiration found after autotuning will be printed in {benchmark}_autotune.log
-* Update these configration in the Makefile inside individal directory and do make opencl/make cuda to collect numbers with the best configration
-
+* Setup the TARGET variable in {Polybench_DIR}/commom.mk accordingly
+* Best configuration found after autotuning will be printed in {benchmark}_autotune.log
+* Update these configurations in the Makefile inside individual directory and do make opencl/make cuda, to execute the benchmark with the best configuration
 

@@ -10,6 +10,8 @@ OpenCL_SDK=/opt/AMDAPP
 
 AUTOTUNE_DIR=/home/chandan/autotune/branch/autotuner
 
+TARGET=opencl
+
 POLYBENCH=${BENCHMARK_DIR}/polybench-c-3.2
 INCLUDE=-I${OpenCL_SDK}/include -I${POLYBENCH}/utilities
 LIBPATH=-L${OpenCL_SDK}/lib/
@@ -34,8 +36,8 @@ cuda: ${SRC}_cuda.exe
 	./${SRC}_cuda.exe
 
 autotune: 
-	python ${AUTOTUNE_DIR}/main.py --target=cuda --log-results-to-file ${SRC}_autotune.log \
-	--ppcg-cmd "${PPCG} --target=cuda --dump-sizes ${AUTOTUNER_FLAGS} -I${POLYBENCH}/utilities ${SRC}.c" \
+	python ${AUTOTUNE_DIR}/main.py --target=${TARGET} --log-results-to-file ${SRC}_autotune.log \
+	--ppcg-cmd "${PPCG} --target=${TARGET} --dump-sizes ${AUTOTUNER_FLAGS} -I${POLYBENCH}/utilities ${SRC}.c" \
 	--build-cmd "nvcc -O3 ${POLYBENCH}/utilities/polybench.cu  -I${POLYBENCH}/utilities -DPOLYBENCH_TIME " \
 	--run-cmd "./" \
 	--execution-time-from-binary \
