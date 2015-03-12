@@ -49,8 +49,9 @@ autotune:
 	--no-private-memory \
 	exhaustive \
 	--only-powers-of-two \
-	--parallelize-compilation \
-	--num-compile-threads 4
+	--params-from-file
+	#--parallelize-compilation \
+	#--num-compile-threads 4
 	#--all-fusion-structures \
 	#--params-from-file
 	#random
