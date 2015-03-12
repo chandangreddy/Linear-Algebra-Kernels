@@ -1,10 +1,16 @@
+
 #PPCG_DIR=/home/baghdadi/src/ppcgs/ppcg_master_exact
 PPCG_DIR=/home/chandan/ppcg/ppcg_master_exact
 PPCG=${PPCG_DIR}/ppcg
-POLYBENCH=/home/chandan/polybench/polybench-c-3.2
 
+
+BENCHMARK_DIR=${PWD}
 
 OpenCL_SDK=/opt/AMDAPP
+
+AUTOTUNE_DIR=/home/chandan/autotune/branch/autotuner
+
+POLYBENCH=${BENCHMARK_DIR}/polybench-c-3.2
 INCLUDE=-I${OpenCL_SDK}/include -I${POLYBENCH}/utilities
 LIBPATH=-L${OpenCL_SDK}/lib/
 LIB=-lOpenCL -lm
@@ -27,7 +33,6 @@ opencl: ${SRC}_host.exe
 cuda: ${SRC}_cuda.exe
 	./${SRC}_cuda.exe
 
-AUTOTUNE_DIR=/home/chandan/polybench/autotuner-master
 autotune: 
 	python ${AUTOTUNE_DIR}/main.py --target=cuda --log-results-to-file ${SRC}_autotune.log \
 	--ppcg-cmd "${PPCG} --target=cuda --dump-sizes ${AUTOTUNER_FLAGS} -I${POLYBENCH}/utilities ${SRC}.c" \
