@@ -23,6 +23,7 @@ CUDA_DIR = {Benchmark}/CUDA
 PPCG generated kernels
 Polybench_DIR = {Benchmark}/polybench-c-3.2
 * Setup PPCG_DIR, OpenCL_DIR, AUTOTUNE_DIR, PENCIL_UTIL and POLYBENCH variables in {Polybench_DIR}/common.mk
+* Add ${PENCIL_UTIL}/runtime/src/.libs directory to the LD_LIBRARY_PATH environment variable
 * to build and run, execute make opencl or make cuda in each of the benchmark directories
 * run make autotune_cuda or autotune_opencl to launch autotuning. Autotuning parameters can be changed in expolre-params.py in each benchmark directory. Note that some of the parameters could be invalid on a particular machine.
 * Setup the TARGET variable in {Polybench_DIR}/commom.mk accordingly
