@@ -126,20 +126,6 @@ int main(int argc, char** argv)
   polybench_stop_instruments;
   polybench_print_instruments;
 
-  /* Start timer. */
-  polybench_start_instruments;
-
-  /* Run kernel. */
-  kernel_mvt (n,
-	      POLYBENCH_ARRAY(x1),
-	      POLYBENCH_ARRAY(x2),
-	      POLYBENCH_ARRAY(y_1),
-	      POLYBENCH_ARRAY(y_2),
-	      POLYBENCH_ARRAY(A));
-
-  /* Stop and print timer. */
-  polybench_stop_instruments;
-  polybench_print_instruments;
   /* Prevent dead-code elimination. All live-out data must be printed
      by the function call in argument. */
   polybench_prevent_dce(print_array(n, POLYBENCH_ARRAY(x1), POLYBENCH_ARRAY(x2)));

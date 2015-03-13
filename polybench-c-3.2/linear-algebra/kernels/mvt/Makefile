@@ -5,6 +5,6 @@ CFILES := {SRC}_host.c
 
 PFLAGS := --ctx="[n] -> {:n=4096}"
 
-PFLAGS := --ctx=\"[n] -> {:n=4096}\"
+AUTOTUNER_FLAGS := --ctx=\"[n] -> {:n=4096}\"
 
 include ../../../common.mk
