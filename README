@@ -3,7 +3,9 @@ Required software:
 
 * PPCG and dependent packages
 * Autotuner 
-* OpenCL or Cuda SDK
+* OpenCL or Cuda SDK 5.5
+* AMD CLBLAS 2.2.0 https://github.com/clMathLibraries/clBLAS
+* CuBLAS 5.5
 
 OpenCl Blas kernels
 OpneCL_Dir = {Benchmark}/Opencl
@@ -20,9 +22,9 @@ CUDA_DIR = {Benchmark}/CUDA
 
 PPCG generated kernels
 Polybench_DIR = {Benchmark}/polybench-c-3.2
-* Setup PPCG_DIR, OpenCL_DIR, AUTOTUNE_DIR and POLYBENCH variables in {Polybench_DIR}/common.mk
+* Setup PPCG_DIR, OpenCL_DIR, AUTOTUNE_DIR, PENCIL_UTIL and POLYBENCH variables in {Polybench_DIR}/common.mk
 * to build and run, execute make opencl or make cuda in each of the benchmark directories
-* run make autotune to launch autotuning. Autotuning parameters can be changed in expolre-params.py in each benchmark directory
+* run make autotune_cuda or autotune_opencl to launch autotuning. Autotuning parameters can be changed in expolre-params.py in each benchmark directory. Note that some of the parameters could be invalid on a particular machine.
 * Setup the TARGET variable in {Polybench_DIR}/commom.mk accordingly
 * Best configuration found after autotuning will be printed in {benchmark}_autotune.log
 * Update these configurations in the Makefile inside individual directory and do make opencl/make cuda, to execute the benchmark with the best configuration
