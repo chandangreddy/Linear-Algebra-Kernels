@@ -20,7 +20,7 @@
 #include <CL/cl.h>
 #endif
 
-#include "../../common/polybenchUtilFuncts.h"
+#include "../common/polybenchUtilFuncts.h"
 
 #include <clAmdBlas.h>
 
@@ -229,56 +229,6 @@ void cl_load_prog()
 }
 
 
-void cl_launch_kernel()
-{
-	double t_start, t_end;
-
-  	int ni=NI;
-  	int nj=NJ;
-  	int nk=NK;
-  	int nl=NL;
-
-	size_t localWorkSize[2], globalWorkSize[2];
-	localWorkSize[0] = DIM_LOCAL_WORK_GROUP_X;
-	localWorkSize[1] = DIM_LOCAL_WORK_GROUP_Y;
-	globalWorkSize[0] = (size_t)ceil(((float)NI) / ((float)DIM_LOCAL_WORK_GROUP_X)) * DIM_LOCAL_WORK_GROUP_X;
-	globalWorkSize[1] = (size_t)ceil(((float)NL) / ((float)DIM_LOCAL_WORK_GROUP_Y)) * DIM_LOCAL_WORK_GROUP_Y;
-
-	t_start = rtclock();
-	
-	// Set the arguments of the kernel
-	errcode =  clSetKernelArg(clKernel1, 0, sizeof(cl_mem), (void *)&a_mem_obj);
-	errcode |= clSetKernelArg(clKernel1, 1, sizeof(cl_mem), (void *)&b_mem_obj);
-	errcode |= clSetKernelArg(clKernel1, 2, sizeof(cl_mem), (void *)&c_mem_obj);
-	errcode |= clSetKernelArg(clKernel1, 3, sizeof(int), (void *)&ni);
-	errcode |= clSetKernelArg(clKernel1, 4, sizeof(int), (void *)&nk);
-	errcode |= clSetKernelArg(clKernel1, 5, sizeof(int), (void *)&nj);
-	if(errcode != CL_SUCCESS) printf("Error in seting arguments\n");
-	// Execute the OpenCL kernel
-	errcode = clEnqueueNDRangeKernel(clCommandQue, clKernel1, 2, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
-	if(errcode != CL_SUCCESS) printf("Error in launching kernel\n");
-	clEnqueueBarrier(clCommandQue);
-
-	globalWorkSize[0] = (size_t)ceil(((float)NI) / ((float)DIM_LOCAL_WORK_GROUP_X)) * DIM_LOCAL_WORK_GROUP_X;
-	globalWorkSize[1] = (size_t)ceil(((float)NL) / ((float)DIM_LOCAL_WORK_GROUP_Y)) * DIM_LOCAL_WORK_GROUP_Y;
-	
-	errcode =  clSetKernelArg(clKernel2, 0, sizeof(cl_mem), (void *)&c_mem_obj);
-	errcode |= clSetKernelArg(clKernel2, 1, sizeof(cl_mem), (void *)&d_mem_obj);
-	errcode |= clSetKernelArg(clKernel2, 2, sizeof(cl_mem), (void *)&e_mem_obj);
-	errcode |= clSetKernelArg(clKernel2, 3, sizeof(int), (void *)&ni);
-	errcode |= clSetKernelArg(clKernel2, 4, sizeof(int), (void *)&nj);
-	errcode |= clSetKernelArg(clKernel2, 5, sizeof(int), (void *)&nl);
-	if(errcode != CL_SUCCESS) printf("Error in seting arguments\n");
-
-	// Execute the OpenCL kernel
-	errcode = clEnqueueNDRangeKernel(clCommandQue, clKernel2, 2, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
-	if(errcode != CL_SUCCESS) printf("Error in launching kernel\n");
-	clFinish(clCommandQue);
-
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
-}
-
 
 void cl_clean_up()
 {
@@ -302,7 +252,6 @@ void cl_clean_up()
 void mm2_cpu(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D, DATA_TYPE* E)
 {
 
-	return;
 	int i, j, k;
 	
   	for (i = 0; i < NI; i++)
@@ -331,21 +280,13 @@ void mm2_cpu(DATA_TYPE* A, DATA_TYPE* B, DATA_TYPE* C, DATA_TYPE* D, DATA_TYPE* 
 
 static const int inc = 1;
 
-int cl_blas(){
+double cl_blas(){
 	int err = -1;
 	double t_start, t_end;
 	cl_event event = NULL;
 
 	DATA_TYPE alpha = 1.0;
 	DATA_TYPE beta = 0.0;
-
-	/* Setup clAmdBlas. */
-	err = clAmdBlasSetup();
-	if (err != CL_SUCCESS) {
-		printf("clAmdBlasSetup() failed with %d\n", err);                      
-		cl_clean_up();
-		return 1;                                                              
-	} 
 
 	t_start = rtclock();
 
@@ -376,8 +317,9 @@ int cl_blas(){
 
 
 	t_end = rtclock(); 
-	fprintf(stdout, "BLAS Runtime: %0.6lfs\n", t_end - t_start);   
+	fprintf(stdout, "kernel execution time: %0.6lfs\n", t_end - t_start);   
 
+    return t_end - t_start;
 
 }
 
@@ -385,6 +327,14 @@ int main(void)
 {
 	double t_start, t_end;
 	
+
+	/* Setup clAmdBlas. */
+	int err = clAmdBlasSetup();
+	if (err != CL_SUCCESS) {
+		printf("clAmdBlasSetup() failed with %d\n", err);                      
+		cl_clean_up();
+		return 1;                                                              
+	} 
 	DATA_TYPE* C;
 	DATA_TYPE* A;
 	DATA_TYPE* B;
@@ -403,21 +353,28 @@ int main(void)
 	init_array(A, B, C, D);
 	read_cl_file();
 	cl_initialization();
+
+    t_start = rtclock();
 	cl_mem_init(A, B, C, D, E);
+    t_end = rtclock();
+    double t_copy = t_end - t_start;
 
-	//cl_load_prog();
-	//cl_launch_kernel();
+	double t_kernel = cl_blas();
 
-	cl_blas();
-
+    t_start = rtclock();
 	errcode = clEnqueueReadBuffer(clCommandQue, e_mem_obj, CL_TRUE, 0, sizeof(DATA_TYPE) * NI * NL, E_outputFromGpu, 0, NULL, NULL);
 	if(errcode != CL_SUCCESS) printf("Error in reading GPU mem\n");
+    t_end = rtclock();
+    t_copy += t_start - t_end;
+	fprintf(stdout, "copy + kernel time : %0.6lf\n", t_copy +  t_kernel );   
 
+    /*
 	t_start = rtclock();
 	mm2_cpu(A, B, C, D, E);
 	t_end = rtclock(); 
 	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);   
 	compareResults(E, E_outputFromGpu);
+    */
 	cl_clean_up();
 
 	free(C);

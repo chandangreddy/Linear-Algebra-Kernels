@@ -27,7 +27,7 @@ static const clAmdBlasTranspose transA = clAmdBlasTrans;
 
 
 
-#include "../../common/polybenchUtilFuncts.h"
+#include "../common/polybenchUtilFuncts.h"
 
 //define the error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 0.05
@@ -271,21 +271,13 @@ void cl_clean_up()
 
 static const int inc = 1;
 
-int cl_blas(){
+double cl_blas(){
 	int err = -1;
 	double t_start, t_end;
 	cl_event event = NULL;
 
 	//DATA_TYPE alpha = 1.0;
 	//DATA_TYPE beta = 0.0;
-
-	/* Setup clAmdBlas. */
-	err = clAmdBlasSetup();
-	if (err != CL_SUCCESS) {
-		printf("clAmdBlasSetup() failed with %d\n", err);                      
-		cl_clean_up();
-		return 1;                                                              
-	} 
 
 	t_start = rtclock();
 	// y = a * (A * x)
@@ -318,6 +310,7 @@ int cl_blas(){
 	t_end = rtclock(); 
 	fprintf(stdout, "BLAS Runtime: %0.6lfs\n", t_end - t_start);   
 
+    return t_end - t_start;
 
 }
 
@@ -325,6 +318,14 @@ int main(void)
 {
 	double t_start, t_end;
 
+
+	/* Setup clAmdBlas. */
+int	err = clAmdBlasSetup();
+	if (err != CL_SUCCESS) {
+		printf("clAmdBlasSetup() failed with %d\n", err);                      
+		cl_clean_up();
+		return 1;                                                              
+	} 
 	DATA_TYPE* A;
 	DATA_TYPE* B;  
 	DATA_TYPE* x;  
@@ -342,21 +343,33 @@ int main(void)
 	init(A, x);
 	read_cl_file();
 	cl_initialization();
+
+    t_start = rtclock();
 	cl_mem_init(A, B, x, y, tmp);
-	cl_load_prog();
+    t_end = rtclock();
+    double t_copy = t_end - t_start;
 
-	cl_launch_kernel();
+	//cl_load_prog();
 
-	cl_blas();
+	//cl_launch_kernel();
 
+	double t_kernel = cl_blas();
+
+    t_start = rtclock();
 	errcode = clEnqueueReadBuffer(clCommandQue, y_mem_obj, CL_TRUE, 0, N*sizeof(DATA_TYPE), y_outputFromGpu, 0, NULL, NULL);
 	if(errcode != CL_SUCCESS) printf("Error in reading GPU mem\n");
+    t_end = rtclock();
+    t_copy = t_end - t_start;
 
+	fprintf(stdout, "copy + kernel Runtime: %0.6lf\n", t_copy + t_kernel);   
+
+    /*
 	t_start = rtclock();
 	gesummv(A, B, x, y, tmp);
 	t_end = rtclock(); 
 	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);   
 	compareResults(y, y_outputFromGpu);
+    */
 	cl_clean_up();
 	
 	free(A);

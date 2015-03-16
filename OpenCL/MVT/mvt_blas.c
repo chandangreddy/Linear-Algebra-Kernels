@@ -26,7 +26,7 @@ static const clAmdBlasTranspose notransA = clAmdBlasNoTrans;
 static const clAmdBlasTranspose transA = clAmdBlasTrans;
 
 
-#include "../../common/polybenchUtilFuncts.h"
+#include "../common/polybenchUtilFuncts.h"
 
 //define the error threshold for the results "not matching"
 #define PERCENT_DIFF_ERROR_THRESHOLD 0.05
@@ -204,50 +204,6 @@ void cl_load_prog()
 }
 
 
-void cl_launch_kernel()
-{
-	double t_start, t_end;
-
-	int n = N;
-
-	size_t localWorkSize[2], globalWorkSize[2];
-	localWorkSize[0] = DIM_LOCAL_WORK_GROUP_X;
-	localWorkSize[1] = DIM_LOCAL_WORK_GROUP_Y;
-	globalWorkSize[0] = (size_t)ceil(((float)N) / ((float)DIM_LOCAL_WORK_GROUP_X)) * DIM_LOCAL_WORK_GROUP_X;
-	globalWorkSize[1] = 1;
-
-	t_start = rtclock();
-	
-	// Set the arguments of the kernel
-	errcode =  clSetKernelArg(clKernel1, 0, sizeof(cl_mem), (void *)&a_mem_obj);
-	errcode |= clSetKernelArg(clKernel1, 1, sizeof(cl_mem), (void *)&x1_mem_obj);
-	errcode |= clSetKernelArg(clKernel1, 2, sizeof(cl_mem), (void *)&y1_mem_obj);
-	errcode |= clSetKernelArg(clKernel1, 3, sizeof(int), (void *)&n);
-	if(errcode != CL_SUCCESS) printf("Error in seting arguments\n");
- 
-	// Execute the OpenCL kernel
-	errcode = clEnqueueNDRangeKernel(clCommandQue, clKernel1, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
-	if(errcode != CL_SUCCESS) printf("Error in launching kernel\n");
-
-	// Set the arguments of the kernel
-	errcode =  clSetKernelArg(clKernel2, 0, sizeof(cl_mem), (void *)&a_mem_obj);
-	errcode |= clSetKernelArg(clKernel2, 1, sizeof(cl_mem), (void *)&x2_mem_obj);
-	errcode |= clSetKernelArg(clKernel2, 2, sizeof(cl_mem), (void *)&y2_mem_obj);
-	errcode |= clSetKernelArg(clKernel2, 3, sizeof(int), (void *)&n);
-	if(errcode != CL_SUCCESS) printf("Error in seting arguments\n");
-
-	// Execute the OpenCL kernel
-	errcode = clEnqueueNDRangeKernel(clCommandQue, clKernel2, 1, NULL, globalWorkSize, localWorkSize, 0, NULL, NULL);
-	if(errcode != CL_SUCCESS) printf("Error in launching kernel\n");
-
-
-	clFinish(clCommandQue);
-
-	t_end = rtclock();
-	fprintf(stdout, "GPU Runtime: %0.6lfs\n", t_end - t_start);
-}
-
-
 void cl_clean_up()
 {
 	// Clean up
@@ -291,21 +247,13 @@ void runMvt(DATA_TYPE* a, DATA_TYPE* x1, DATA_TYPE* x2, DATA_TYPE* y1, DATA_TYPE
 
 static const int inc = 1;
 
-int cl_blas(){
+double cl_blas(){
 	int err = -1;
 	double t_start, t_end;
 	cl_event event = NULL;
 
 	//DATA_TYPE alpha = 1.0;
 	//DATA_TYPE beta = 0.0;
-
-	/* Setup clAmdBlas. */
-	err = clAmdBlasSetup();
-	if (err != CL_SUCCESS) {
-		printf("clAmdBlasSetup() failed with %d\n", err);                      
-		cl_clean_up();
-		return 1;                                                              
-	} 
 
 	t_start = rtclock();
 
@@ -337,8 +285,9 @@ int cl_blas(){
 		err = clWaitForEvents(1, &event);
 	}
 	t_end = rtclock(); 
-	fprintf(stdout, "BLAS Runtime: %0.6lfs\n", t_end - t_start);   
+	fprintf(stdout, "kernel execution: %0.6lfs\n", t_end - t_start);   
 
+    return t_end - t_start;
 
 }
 
@@ -362,25 +311,47 @@ int main(void)
 	y_1 = (DATA_TYPE*)malloc(N*sizeof(DATA_TYPE));
 	y_2 = (DATA_TYPE*)malloc(N*sizeof(DATA_TYPE));
 
+
+	/* Setup clAmdBlas. */
+	int err = clAmdBlasSetup();
+	if (err != CL_SUCCESS) {
+		printf("clAmdBlasSetup() failed with %d\n", err);                      
+		cl_clean_up();
+		return 1;                                                              
+	} 
+
 	init_arrays(a, x1, x2, y_1, y_2);
 	read_cl_file();
 	cl_initialization();
+
+	//cl_load_prog();
+
+	//cl_launch_kernel();
+
+	t_start = rtclock();
 	cl_mem_init(a, x1, x2, y_1, y_2);
-	cl_load_prog();
+	t_end = rtclock(); 
+    double t_copy = t_end - t_start;
 
-	cl_launch_kernel();
+	double t_kernel = cl_blas();
 
-	cl_blas();
-
+    
+	t_start = rtclock();
 	errcode = clEnqueueReadBuffer(clCommandQue, x1_mem_obj, CL_TRUE, 0, N*sizeof(DATA_TYPE), x1_outputFromGpu, 0, NULL, NULL);
 	errcode = clEnqueueReadBuffer(clCommandQue, x2_mem_obj, CL_TRUE, 0, N*sizeof(DATA_TYPE), x2_outputFromGpu, 0, NULL, NULL);
 	if(errcode != CL_SUCCESS) printf("Error in reading GPU mem\n");   
+	t_end = rtclock(); 
+    t_copy += t_end - t_start;
 
+	fprintf(stdout, "copy + kernel : %0.6lfs\n", t_copy + t_kernel);   
+    
+    /*
 	t_start = rtclock();
 	runMvt(a, x1, x2, y_1, y_2);
 	t_end = rtclock(); 
 	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);   
 	compareResults(x1, x1_outputFromGpu, x2, x2_outputFromGpu);
+    */
 	cl_clean_up();
 
 	free(a);
