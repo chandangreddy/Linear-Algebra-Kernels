@@ -46,23 +46,24 @@ autotune_cuda:
 	--ppcg-cmd "${PPCG} --target=${TARGET} --dump-sizes ${AUTOTUNER_FLAGS} -I${POLYBENCH}/utilities ${SRC}.c" \
 	--build-cmd "nvcc -O3 ${POLYBENCH}/utilities/polybench.cu  -I${POLYBENCH}/utilities -DPOLYBENCH_TIME " \
 	--run-cmd "./" \
-	--execution-time-from-binary \
 	--block-size-range 1-2 \
-	--grid-size-range 1-2 \
+	--grid-size-range 10-10 \
 	--tile-size-range 1-2 \
-	--tile-dimensions 1 \
-	--block-dimensions 1 \
-	--grid-dimensions 1 \
+	--tile-dimensions 2 \
+	--block-dimensions 2 \
+	--grid-dimensions 2 \
 	--no-shared-memory \
 	--no-private-memory \
 	--verbose \
 	exhaustive \
 	--only-powers-of-two \
-	--params-from-file
+	--filter-testcases
+	#--params-from-file
 	#--parallelize-compilation \
 	#--num-compile-threads 4
 	#--all-fusion-structures \
 	#--params-from-file
+	#--execution-time-from-binary \
 	#random
 
 
@@ -71,21 +72,21 @@ autotune_opencl:
 	--ppcg-cmd "${PPCG} --target=opencl --dump-sizes ${AUTOTUNER_FLAGS} -I${POLYBENCH}/utilities ${SRC}.c" \
 	--build-cmd "gcc -std=gnu99 -O3 ${INCLUDE} ${LIBPATH} -DPOLYBENCH_TIME  -I${PENCIL_UTIL}/include  -I${PENCIL_UTIL}/runtime/include ${POLYBENCH}/utilities/polybench.c -L${PENCIL_UTIL}/runtime/src/.libs ${LIB} -lprl -lOpenCL" \
 	--run-cmd "./" \
-	--execution-time-from-binary \
-	--block-size-range 1-2 \
-	--grid-size-range 1-2 \
-	--tile-size-range 1-2 \
-	--tile-dimensions 1 \
-	--block-dimensions 1 \
-	--grid-dimensions 1 \
-	--no-shared-memory \
-	--no-private-memory \
+	--runs  1 \
+	--block-size-range 2-6 \
+	--grid-size-range 10-10 \
+	--tile-size-range 2-8 \
+	--tile-dimensions 2 \
+	--block-dimensions 2 \
+	--grid-dimensions 2 \
 	--verbose \
 	exhaustive \
 	--only-powers-of-two \
-	--params-from-file
-	#--parallelize-compilation \
-	#--num-compile-threads 4
+	--parallelize-compilation \
+	--num-compile-threads 4 \
+	--filter-testcases
+	#--execution-time-from-binary \
+	#--params-from-file
 	#--all-fusion-structures \
 	#--params-from-file
 	#random
