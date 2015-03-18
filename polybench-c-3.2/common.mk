@@ -49,7 +49,7 @@ autotune_cuda:
 	--block-size-range 1-2 \
 	--grid-size-range 10-10 \
 	--tile-size-range 1-2 \
-	--tile-dimensions 2 \
+	--tile-dimensions ${NUM_TILE_DIMS} \
 	--block-dimensions 2 \
 	--grid-dimensions 2 \
 	--no-shared-memory \
@@ -73,18 +73,18 @@ autotune_opencl:
 	--build-cmd "gcc -std=gnu99 -O3 ${INCLUDE} ${LIBPATH} -DPOLYBENCH_TIME  -I${PENCIL_UTIL}/include  -I${PENCIL_UTIL}/runtime/include ${POLYBENCH}/utilities/polybench.c -L${PENCIL_UTIL}/runtime/src/.libs ${LIB} -lprl -lOpenCL" \
 	--run-cmd "./" \
 	--runs  1 \
-	--block-size-range 2-6 \
+	--block-size-range 2-7 \
 	--grid-size-range 10-10 \
 	--tile-size-range 2-8 \
-	--tile-dimensions 2 \
+	--tile-dimensions  ${NUM_TILE_DIMS} \
 	--block-dimensions 2 \
 	--grid-dimensions 2 \
 	--verbose \
 	exhaustive \
 	--only-powers-of-two \
-	--parallelize-compilation \
-	--num-compile-threads 4 \
 	--filter-testcases
+	#--parallelize-compilation \
+	#--num-compile-threads 4 \
 	#--execution-time-from-binary \
 	#--params-from-file
 	#--all-fusion-structures \

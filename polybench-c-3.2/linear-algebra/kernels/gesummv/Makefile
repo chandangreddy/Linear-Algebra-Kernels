@@ -9,4 +9,6 @@ PFLAFS +=  --sizes="{kernel[i]->tile[8,4,8];kernel[i]->block[8,4];kernel[i]->gri
 
 AUTOTUNER_FLAGS += --ctx=\"[n] -> {:n=4096}\" 
 
+NUM_TILE_DIMS := 2
+
 include ../../../common.mk

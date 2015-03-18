@@ -8,4 +8,6 @@ PFLAGS += --sizes="{kernel[i]->tile[32,8,8];kernel[i]->block[32,4];kernel[i]->gr
 
 AUTOTUNER_FLAGS := --ctx=\"[nx, ny] -> {:nx=ny=4096}\"
 
+NUM_TILE_DIMS := 2
+
 include ../../../common.mk

@@ -8,4 +8,6 @@ PFLAGS += --ctx="[ni, nj, nk, nl] -> {:ni=nj=nk=nl=4096}"
 
 AUTOTUNER_FLAGS += --ctx=\"[ni, nj, nk, nl] -> {:ni=nj=nk=nl=4096}\" 
 
+NUM_TILE_DIMS := 3
+
 include ../../../common.mk
