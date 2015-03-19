@@ -420,11 +420,11 @@ int main(void)
     t_end = rtclock();
     t_copy += t_end - t_start;
 
+	fprintf(stdout, "Copy + kernel : %0.6lf\n", t_copy+t_kernel);   
     /*
 	t_start = rtclock();
 	gemver(A, u1, u2, v1, v2, w, x, y, z);
 	t_end = rtclock(); 
-	fprintf(stdout, "copy + kernel : %0.6lf\n", t_copy + t_kernel);   
 	fprintf(stdout, "CPU Runtime: %0.6lfs\n", t_end - t_start);   
 	compareResults(w, w_outputFromGpu);
     */

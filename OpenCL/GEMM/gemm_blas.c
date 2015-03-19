@@ -314,7 +314,7 @@ int main(void)
 	if(errcode != CL_SUCCESS) printf("Error in reading GPU mem\n");
     t_end = rtclock();
     t_copy += t_end - t_start;
-	fprintf(stdout, "Copy + kernel  Runtime: %0.6lf\n", t_copy + t_kernel);   
+    fprintf(stdout, "Copy + kernel  Runtime: %0.6lfms\n", (t_copy + t_kernel)*1000);   
 
     /*
 	t_start = rtclock();

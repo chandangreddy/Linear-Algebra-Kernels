@@ -14,5 +14,8 @@ all:
 blas:
 	gcc -O3 ${INCLUDE} ${LIBPATH} ${BLAS_INCLUDE} ${BLAS_LIBPATH} ${BLAS_FILES} -o ${B_EXECUTABLE} ${LIB} ${BLAS_LIB}
 
+run:
+	./${B_EXECUTABLE}
+
 clean:
 	rm -f *~ *.exe
