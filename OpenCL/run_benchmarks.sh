@@ -2,7 +2,6 @@
 orig=$(pwd)
 log_file=${orig}/results_blas
 num_runs=3
-run_autotuner=0
 
 get_median()
 {
@@ -19,19 +18,15 @@ do
 		cd $currDir
 		pwd
 		make clean
-		#make blas
-                #./*.exe
-                for((i=0;i<${num_runs};i++)) 
-                do
-                    #echo $i
-                    make run | grep Copy | sed -e 's/Copy + kernel Runtime:[ ]*\([0-9.]*\)ms/\1/' >> results
-                done
-                {
-                printf "${src}: Total execution time = ">>${log_file}
-                get_median results >>${log_file} 
-                printf " ms\n" >>${log_file}
+		make blas
+        for((i=0;i<${num_runs};i++)) 
+        do
+            #echo $i
+            make run | grep "Copy +" | sed -e 's/Copy + kernel  Runtime:\(.*\)ms/\1/' >> results
+        done
+        printf "${src}: Total execution time = ">>${log_file}
+        get_median results >>${log_file} 
+        printf " ms\n" >>${log_file}
 		cd -  
-                }
-		cd ..
     fi
 done
