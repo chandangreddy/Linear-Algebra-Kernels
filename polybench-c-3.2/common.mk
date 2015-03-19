@@ -1,3 +1,4 @@
+#!bin/sh
 
 #PPCG_DIR=/home/baghdadi/src/ppcgs/ppcg_master_exact
 #PPCG_DIR=/home/chandan/ppcg/ppcg_master_exact
@@ -22,9 +23,15 @@ INCLUDE=-I${OpenCL_SDK}/include -I${POLYBENCH}/utilities
 LIBPATH=-L${OpenCL_SDK}/lib/
 LIB=-lOpenCL -lm
 
-#--opencl-print-time-measurements
 ${SRC}_host.c: ${SRC}.c
 	${PPCG} ${PFLAGS} --target=opencl -I${POLYBENCH}/utilities  ${SRC}.c
+
+
+${SRC}_host_best.c: ${SRC}.c
+	conf="`tail -2 ${SRC}_autotune.log| head -1 | sed -e 's/^.*ppcg = \(.*\), status = passed.*/\1/'`"; \
+	echo  $${conf} ; \
+	${PPCG} `eval "echo $${conf}"` -I${POLYBENCH}/utilities  ${SRC}.c -o ${SRC}_host_best.c
+	
 
 ${SRC}_host.cu: ${SRC}.c
 	${PPCG} ${PFLAGS} --target=cuda -I${POLYBENCH}/utilities ${SRC}.c
@@ -35,8 +42,15 @@ ${SRC}_cuda.exe: ${SRC}_host.cu
 ${SRC}_host.exe: ${SRC}_host.c 
 	gcc -std=gnu99 -O3 ${INCLUDE} ${LIBPATH} ${SRC}_host.c -DPOLYBENCH_TIME  -I${PENCIL_UTIL}/include  -I${PENCIL_UTIL}/runtime/include ${POLYBENCH}/utilities/polybench.c -L${PENCIL_UTIL}/runtime/src/.libs  -o ${SRC}_host.exe  ${LIB} -lprl -lOpenCL
 	
+
+${SRC}_host_best.exe: ${SRC}_host_best.c 
+	gcc -std=gnu99 -O3 ${INCLUDE} ${LIBPATH} ${SRC}_host_best.c -DPOLYBENCH_TIME  -I${PENCIL_UTIL}/include  -I${PENCIL_UTIL}/runtime/include ${POLYBENCH}/utilities/polybench.c -L${PENCIL_UTIL}/runtime/src/.libs  -o ${SRC}_host_best.exe  ${LIB} -lprl -lOpenCL
+	
 opencl: ${SRC}_host.exe 
 	PRL_PROFILING=1 ./${SRC}_host.exe 
+
+opencl_best: ${SRC}_host_best.exe 
+	PRL_PROFILING=1 ./${SRC}_host_best.exe 
 
 cuda: ${SRC}_cuda.exe
 	./${SRC}_cuda.exe
@@ -73,16 +87,16 @@ autotune_opencl:
 	--build-cmd "gcc -std=gnu99 -O3 ${INCLUDE} ${LIBPATH} -DPOLYBENCH_TIME  -I${PENCIL_UTIL}/include  -I${PENCIL_UTIL}/runtime/include ${POLYBENCH}/utilities/polybench.c -L${PENCIL_UTIL}/runtime/src/.libs ${LIB} -lprl -lOpenCL" \
 	--run-cmd "./" \
 	--runs  1 \
-	--block-size-range 2-7 \
+	--block-size-range 1-9 \
 	--grid-size-range 10-10 \
-	--tile-size-range 2-8 \
+	--tile-size-range 4-4 \
 	--tile-dimensions  ${NUM_TILE_DIMS} \
 	--block-dimensions 2 \
 	--grid-dimensions 2 \
 	--verbose \
 	exhaustive \
 	--only-powers-of-two \
-	--filter-testcases
+	--filter-testcases \
 	#--parallelize-compilation \
 	#--num-compile-threads 4 \
 	#--execution-time-from-binary \
@@ -92,4 +106,4 @@ autotune_opencl:
 	#random
 
 clean:
-	rm -f ${SRC}_kernel.cl ${SRC}_host.c ${SRC}_kernel.h ${SRC}_host.exe *.cu ${SRC}_cuda.exe ${SRC}_kernel.hu ${SRC}_*.log
+	rm -f ${SRC}_kernel.cl ${SRC}_host.c ${SRC}_kernel.h ${SRC}_host.exe *.cu ${SRC}_cuda.exe ${SRC}_kernel.hu  ${SRC}_*_best*
